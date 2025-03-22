@@ -1,48 +1,33 @@
 use std::cmp::Ordering;
-use std::collections::HashSet;
-use std::iter;
-
-pub const SIZE: usize = 41;
 
 impl Solution {
     pub fn combination_sum(mut candidates: Vec<i32>, target: i32) -> Vec<Vec<i32>> {
         candidates.sort_unstable();
-        let mut solution: [i32; SIZE] = [0; SIZE];
-        let mut answer: HashSet<[i32; SIZE]> = HashSet::new();
+        let mut solution: Vec<i32> = Vec::new();
+        let mut answer: Vec<Vec<i32>> = Vec::new();
         Self::combi_inner(candidates.as_slice(), &target, &mut solution, &mut answer);
-        answer.iter().map(|b| Self::buckets_to_vec(b.into())).collect()
-    }
-
-    // For example: [0, 2, 0, 0, 3, 1] -> [1, 1, 4, 4, 4, 5]
-    fn buckets_to_vec(bucket: &[i32; SIZE]) -> Vec<i32> {
-        bucket
-            .iter()
-            .enumerate()
-            .fold(Vec::new(), |mut acc, (i, qty)| {
-                acc.extend(iter::repeat(i as i32).take(*qty as usize));
-                acc
-            })
+        answer
     }
 
     fn combi_inner(
         candidates: &[i32],
         target: &i32,
-        solution: &mut [i32; SIZE],
-        answer: &mut HashSet<[i32; SIZE]>,
+        solution: &mut Vec<i32>,
+        answer: &mut Vec<Vec<i32>>,
     ) {
         match 0_i32.cmp(target) {
             Ordering::Greater => (),
             Ordering::Equal => {
-                answer.insert((*solution).into());
+                answer.push(solution.to_vec());
             },
             Ordering::Less => {
-                let upper = candidates.partition_point(|i| i <= &target);
-                for int in candidates[..upper].iter() {
-                    solution[*int as usize] += 1;
+                let last = *solution.last().unwrap_or(&0_i32);
+                candidates.iter().filter(|i| i <= &target && i >= &&last).for_each(|int| {
+                    solution.push(*int);
                     Self::combi_inner(candidates, &(target - int), solution, answer);
-                    solution[*int as usize] -= 1;
-                }
+                    solution.pop();
+                });
             }
-        };
+        }
     }
 }
